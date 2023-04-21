@@ -113,7 +113,6 @@ description = input("Insira uma descrição para a coleta: ")
 read_time = input("Digite o tempo (em segundos) para executar a coleta: ")
 read_time = int(read_time)
 opcao = ""
-
 while opcao != '0':
     opcao = input("\nQual dispositivo utilizar para a coleta:\n(precione 0 para finalizar)\n[1]ESP32-LEFT\n[2]ESP32-RIGHT\n[3]ESP32-LEFT + ESP32-RIGHT\n[4]ESP32-LEFT + ESP32-RIGHT + MYO\n\n:")
     if(opcao == '1'):
