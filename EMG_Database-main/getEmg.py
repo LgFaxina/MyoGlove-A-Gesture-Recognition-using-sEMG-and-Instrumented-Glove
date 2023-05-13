@@ -117,16 +117,25 @@ def show_output(message, data, r):
     global data_list
 
     if t2 - t1 < (T * 1000000):
-        df_myo = df_myo.append(pd.Series({'timestamp': t2,
-                                          'EMG_s0': data[0],
-                                          'EMG_s1': data[1],
-                                          'EMG_s2': data[2],
-                                          'EMG_s3': data[3],
-                                          'EMG_s4': data[4],
-                                          'EMG_s5': data[5],
-                                          'EMG_s6': data[6],
-                                          'EMG_s7': data[7]},
-                                         ), ignore_index=True)
+        #df_myo = df_myo.append(pd.Series({'timestamp': t2,
+        #                                  'EMG_s0': data[0],
+        #                                  'EMG_s1': data[1],
+        #                                  'EMG_s2': data[2],
+        #                                  'EMG_s3': data[3],
+        #                                  'EMG_s4': data[4],
+        #                                  'EMG_s5': data[5],
+        #                                  'EMG_s6': data[6],
+        #                                  'EMG_s7': data[7]},
+        #                                 ), ignore_index=True)
+        df_myo = pd.concat([df_myo,pd.DataFrame({'timestamp': t2,
+                                                 'EMG_s0': data[0],
+                                                 'EMG_s1': data[1],
+                                                 'EMG_s2': data[2],
+                                                 'EMG_s3': data[3],
+                                                 'EMG_s4': data[4],
+                                                 'EMG_s5': data[5],
+                                                 'EMG_s6': data[6],
+                                                 'EMG_s7': data[7]}, index=[0])])
         # print('t:{:<9}: '.format(
         #     (t2 - t1) / 1000000) + '[{:>8},  {:>8},  {:>8}, {:>8},  {:>8},  {:>8},  {:>8},  {:>8}]'
         #       .format(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]))
