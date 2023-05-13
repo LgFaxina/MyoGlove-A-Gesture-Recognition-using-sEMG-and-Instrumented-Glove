@@ -1,0 +1,15 @@
+<pose_t: fist>
+<pose_t: rest>
+<pose_t: fist>
+<pose_t: rest>
+<pose_t: wave_out>
+<pose_t: rest>
+<pose_t: wave_in>
+<pose_t: rest>
+<pose_t: wave_out>
+<pose_t: rest>
+<pose_t: double_tap>
+<pose_t: rest>
+<pose_t: rest>
+<pose_t: wave_in>
+<pose_t: rest>
