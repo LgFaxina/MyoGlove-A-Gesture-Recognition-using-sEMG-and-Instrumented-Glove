@@ -235,11 +235,12 @@ def leitura_esp32_1e2(file_name,read_time):
         print(df_data_1e2) #debbug
         df_data_1e2.to_csv(file_name, mode='a', header=not os.path.exists(file_name)) # Escreve o DataFrame no arquivo CSV
 
-def leitura_2Xesp32_myo(file_name,read_time):
+def leitura_2Xesp32_myo(file_name,read_time,hub):
     t1 = threading.Thread(target=leitura_esp32_1e2,args=(file_name,read_time))
-    t2 = threading.Thread(target=Listener)
+ #   t2 = threading.Thread(target=Listener)
     t1.start()
-    t2.start()
+    hub.run(1000, Listener())
+ #   t2.start()
 
 
 def main():
@@ -251,6 +252,8 @@ def main():
     #read_time = int(read_time)
     read_time = T
     opcao = ""
+    hub = myo.Hub()
+    hub.set_locking_policy(myo.locking_policy.none)
 
     while opcao != '0':
         opcao = input("\nQual dispositivo utilizar para a coleta:\n(precione 0 para finalizar)\n[1]ESP32-LEFT\n[2]ESP32-RIGHT\n[3]ESP32-LEFT + ESP32-RIGHT\n[4]ESP32-LEFT + ESP32-RIGHT + MYO\n[5]Myo\n\n:")
@@ -258,25 +261,33 @@ def main():
             print("opcao 1 selecionada\n")
             device = "LG"
             file_name = f"Data\{user_name}_{description}_{read_time}s_device{device}.csv"
+            print("Running...\n")
             leitura_esp32_1(file_name,read_time)
         if(opcao == '2'):
             print("opcao 2 selecionada\n")
             device = "RG"
             file_name = f"Data\{user_name}_{description}_{read_time}s_device{device}.csv"
+            print("Running...\n")
             leitura_esp32_2(file_name,read_time)
         if(opcao == '3'):
             print("opcao 3 selecionada\n")
             device = "LG+RG"
             file_name = f"Data\{user_name}_{description}_{read_time}s_device{device}.csv"
+            print("Running...\n")
             leitura_esp32_1e2(file_name,read_time)
         if(opcao == '4'):
             print("opcao 4 selecionada\n")
             device = "LG+RG+Myo"
             file_name = f"Data\{user_name}_{description}_{read_time}s_device{device}.csv"
-            leitura_2Xesp32_myo(file_name,read_time)
+            print("Running...\n")
+            leitura_2Xesp32_myo(file_name,read_time,hub)
+            try:
+                while hub.running:
+                   myo.time.sleep(0.2)
+            except KeyboardInterrupt:
+                print_("Quitting ...")
+                hub.stop(True)
         if(opcao == '5'):
-            hub = myo.Hub()
-            hub.set_locking_policy(myo.locking_policy.none)
             print("opcao 5 selecionada\n")
             device = "Myo"
             file_name = f"Data\{user_name}_{description}_{read_time}s_device{device}.csv"
