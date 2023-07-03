@@ -49,7 +49,6 @@ This parameter controls the percent of times that data is shown.
 
 class Listener(myo.DeviceListener):
     # return False from any method to stop the Hub
-
     def on_connect(self, myo, timestamp):
         print_("Connected to Myo")
         myo.vibrate('short')
@@ -108,7 +107,7 @@ class Listener(myo.DeviceListener):
 def show_output(message, data, r):
     global t2
     global t1
-    global T
+    T
     global delta_t
     global df_myo
     global flag
