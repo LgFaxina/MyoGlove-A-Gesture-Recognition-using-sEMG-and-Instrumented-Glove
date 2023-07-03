@@ -7,12 +7,12 @@ import os
 
 #Conexão com os ESP's através das portas bluetooth do notebook
 try:
-    BL1 = serial.Serial('COM4',115200) #esp1
+    BL1 = serial.Serial('COM7',115200) #esp1
     print("Connected ESP32-LEFT")
 except:
     print("Error when connecting to the ESP32-LEFT")
 try:
-    BL2 = serial.Serial('COM7',115200) #esp2
+    BL2 = serial.Serial('COM4',115200) #esp2
     print("Connected ESP32-RIGHT")
 except:
     print("Error when connecting to the ESP32-RIGHT")
@@ -21,12 +21,13 @@ except:
 def leitura_esp32_1(file_name,read_time):
     start_time = time.time()
     while (time.time() - start_time) < read_time:
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f") #Timestamp do domento da leitura
+        #timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f") #Timestamp do domento da leitura
+        timestamp = time.time()
         serial_data1 = BL1.readline() # Lê a linha da porta serial          
         # Converte a linha para um objeto JSON
         try:
             json_data1 = json.loads(serial_data1.decode()) #serial -> json
-            #print(json_data1) #debbug
+            print(json_data1) #debbug
         except ValueError: # Se linha inválida, ignorar            
             continue
         df_data1 = pd.DataFrame.from_dict(json_data1) #json -> dataframe
@@ -37,6 +38,7 @@ def leitura_esp32_2(file_name,read_time):
     start_time = time.time()
     while (time.time() - start_time) < read_time:
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f") #Timestamp do domento da leitura
+        #timestamp = time.time()
         serial_data2 = BL2.readline() # Lê a linha da porta serial          
         # Converte a linha para um objeto JSON
         try:
@@ -52,6 +54,7 @@ def leitura_esp32_1e2(file_name,read_time):
     start_time = time.time()
     while (time.time() - start_time) < read_time:
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f") #Timestamp do domento da leitura
+        #timestamp = time.time()
         serial_data1 = BL1.readline() # Lê a linha da porta serial
         serial_data2 = BL2.readline() # Lê a linha da porta serial    
         print("SERIAL ESP32-1:\n"+serial_data1.decode()) #debbug
@@ -81,6 +84,7 @@ def leitura_2Xesp32_myo(file_name,read_time):
     start_time = time.time()
     while (time.time() - start_time) < read_time:
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f") #Timestamp do domento da leitura
+        #timestamp = time.time()
         serial_data1 = BL1.readline() # Lê a linha da porta serial
         serial_data2 = BL2.readline() # Lê a linha da porta serial    
         print("SERIAL ESP32-1:\n"+serial_data1.decode()) #debbug
