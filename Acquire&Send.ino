@@ -22,7 +22,7 @@ Adafruit_MPU6050 mpu; //define MPU-6050 Sensor
 /*---------------------------------------------*/
 
 #define signal 15      //define the input pin for esp32
-#define bufferSize 96  //define the amount of data stored inside de buffer
+#define bufferSize 66  //define the amount of data stored inside de buffer
 
 #define LED_BUILTIN 2
 /*Global declaration for blinking led withoud delay*/
@@ -44,7 +44,15 @@ const size_t CAPACITY = JSON_ARRAY_SIZE(bufferSize);
 int bufferIndex = 0; //index for counting buffer readyness
 /*---------------------------------------------*/
 
+/*Global declaration for Flex Sensors*/
+const int numFlexSensors = 5;
+const int sensorPins[numFlexSensors] = {34, 35, 32, 33, 25};
+const int resistorValue = 100000; // 100k ohms
+const float voltageReference = 3.3; // Tensão de referência do ESP32 em volts
+const int adcResolution = 4095; // Resolução do ADC do ESP32
+/*---------------------------------------------*/
 //float timestampSimu = 1680058002;
+
 const char* name_device = "left"; // "left" or "right"
 
 String DataPrep(){
@@ -58,14 +66,26 @@ String DataPrep(){
   JsonArray data_Gy_Y = doc.createNestedArray("left_data_Gy_Y");
   JsonArray data_Gy_Z = doc.createNestedArray("left_data_Gy_Z");
 
+  JsonArray data_flex_1 = doc.createNestedArray("left_data_flex_1");
+  JsonArray data_flex_2 = doc.createNestedArray("left_data_flex_2");
+  JsonArray data_flex_3 = doc.createNestedArray("left_data_flex_3");
+  JsonArray data_flex_4 = doc.createNestedArray("left_data_flex_4");
+  JsonArray data_flex_5 = doc.createNestedArray("left_data_flex_5");
   /*JsonArray data_Ac_X = doc.createNestedArray("right_data_Ac_X");
   JsonArray data_Ac_Y = doc.createNestedArray("right_data_Ac_Y");
   JsonArray data_Ac_Z = doc.createNestedArray("right_data_Ac_Z");
   JsonArray data_Gy_X = doc.createNestedArray("right_data_Gy_X");
   JsonArray data_Gy_Y = doc.createNestedArray("right_data_Gy_Y");
-  JsonArray data_Gy_Z = doc.createNestedArray("right_data_Gy_Z");*/
+  JsonArray data_Gy_Z = doc.createNestedArray("right_data_Gy_Z");
+  
+  JsonArray data_Gy_Z = doc.createNestedArray("right_data_flex_1");
+  JsonArray data_Gy_Z = doc.createNestedArray("right_data_flex_2");
+  JsonArray data_Gy_Z = doc.createNestedArray("right_data_flex_3");
+  JsonArray data_Gy_Z = doc.createNestedArray("right_data_flex_4");
+  JsonArray data_Gy_Z = doc.createNestedArray("right_data_flex_5");  
+  */
 
-  for (int i = 0; i < bufferSize; i=i+6){
+  for (int i = 0; i < bufferSize; i=i+11){
       //timestamp.add(buffer[i]);
       data_Ac_X.add(buffer[i]);
       data_Ac_Y.add(buffer[i+1]);
@@ -73,6 +93,11 @@ String DataPrep(){
       data_Gy_X.add(buffer[i+3]);
       data_Gy_Y.add(buffer[i+4]);
       data_Gy_Z.add(buffer[i+5]);
+      data_flex_1.add(buffer[i+6]);
+      data_flex_2.add(buffer[i+7]);
+      data_flex_3.add(buffer[i+8]);
+      data_flex_4.add(buffer[i+9]);
+      data_flex_5.add(buffer[i+10]);
   }
   // serialize the array and sed the result to Serial
   String json;
@@ -81,7 +106,7 @@ String DataPrep(){
   return json;
 }
 
-bool bufferBuild(float valueRead1,float valueRead2,float valueRead3,float valueRead4,float valueRead5,float valueRead6, unsigned long currentMicros){
+bool bufferBuild(float valueRead1,float valueRead2,float valueRead3,float valueRead4,float valueRead5,float valueRead6,float valueRead7,float valueRead8,float valueRead9,float valueRead10,float valueRead11, unsigned long currentMicros){
   if(currentMicros - BUFFERpreviousMicros >= BUFFERinterval){
     //Serial.print("#debug - (currentMicros - BUFFERpreviousMicros ");Serial.println(currentMicros - BUFFERpreviousMicros);      //*debug*
     BUFFERpreviousMicros = currentMicros;  
@@ -93,6 +118,11 @@ bool bufferBuild(float valueRead1,float valueRead2,float valueRead3,float valueR
     buffer[bufferIndex+3] = valueRead4;
     buffer[bufferIndex+4] = valueRead5;
     buffer[bufferIndex+5] = valueRead6;
+    buffer[bufferIndex+6] = valueRead7;
+    buffer[bufferIndex+7] = valueRead8;
+    buffer[bufferIndex+8] = valueRead9;
+    buffer[bufferIndex+9] = valueRead10;
+    buffer[bufferIndex+10] = valueRead11;
     /*Serial.print(" - "); Serial.print(bufferIndex); Serial.print(" - "); Serial.print(timestampRead);
     Serial.print(" - "); Serial.print(bufferIndex+1); Serial.print(" - "); Serial.print(valueRead1);
     Serial.print(" - "); Serial.print(bufferIndex+2); Serial.print(" - "); Serial.print(valueRead2);
@@ -101,7 +131,7 @@ bool bufferBuild(float valueRead1,float valueRead2,float valueRead3,float valueR
     Serial.print(" - "); Serial.print(bufferIndex+5); Serial.print(" - "); Serial.print(valueRead5);
     Serial.print(" - "); Serial.print(bufferIndex+6); Serial.print(" - "); Serial.print(valueRead6);
          *///*debug*
-    bufferIndex = bufferIndex + 6;
+    bufferIndex = bufferIndex + 11;
 
     if (bufferIndex >= bufferSize){
       //Serial.print("#debug - bufferIndex ");Serial.println(bufferIndex);    //*debug*
@@ -209,6 +239,15 @@ void loop() {
   sensors_event_t a, g, temp;
   mpu.getEvent(&a, &g, &temp);
 
+  float sensorValues[numFlexSensors];
+  for (int i = 0; i < numFlexSensors; i++) {
+    int rawValue = analogRead(sensorPins[i]);
+    float voltage = (rawValue * voltageReference) / adcResolution;
+    float sensorResistance = (voltage * resistorValue) / (voltageReference - voltage);
+    sensorValues[i] = sensorResistance;
+  }
+  
+
   unsigned long currentMicros = micros(); //using microsec precision reduces the code velocity to ~=10380 cicles per sec
 
   //this if section is only for blinking the onboard LED
@@ -231,7 +270,7 @@ void loop() {
   //strcpy(name_device_sensor,name_device);
   //strcat(name_device_sensor, name_sensor);
   
-  bufferFlag = bufferBuild(a.acceleration.x, a.acceleration.y, a.acceleration.z, g.gyro.x, g.gyro.y, g.gyro.z, currentMicros);   //call the buffer builder function every loop cicle, now using raw analog input and microsec precision
+  bufferFlag = bufferBuild(a.acceleration.x, a.acceleration.y, a.acceleration.z, g.gyro.x, g.gyro.y, g.gyro.z, sensorValues[0],sensorValues[1],sensorValues[2],sensorValues[3],sensorValues[4],currentMicros);   //call the buffer builder function every loop cicle, now using raw analog input and microsec precision
   //Serial.print("------------"); Serial.println(bufferFlag);     //*debug*
   
   if(bufferFlag == 1){
