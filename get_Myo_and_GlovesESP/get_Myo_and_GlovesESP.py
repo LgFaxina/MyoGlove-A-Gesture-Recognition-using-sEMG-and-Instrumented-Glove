@@ -171,7 +171,7 @@ def leitura_esp32_1(file_name,read_time):
         timestamp_buffer = time.time_ns() #retorna em nanosegundos(int) no momento da leitura do buffer na serial
         dif_entre_coleta = 1000000 #1000000 nanosegundos = 1milisegundos
         vetor_timestamp_ajustado = []
-        for i in range(14, -1, -1): # loop para gerar um vetor com o timestamp ajustado para cada posição do vetor, fazendo de trás para frente uma vez que o timestamp do buffer é mais proximo a última posição de coleta 
+        for i in range(4, -1, -1): # loop para gerar um vetor com o timestamp ajustado para cada posição do vetor, fazendo de trás para frente uma vez que o timestamp do buffer é mais proximo a última posição de coleta 
             timestamp_ajustado = timestamp_buffer - (i * dif_entre_coleta)
             vetor_timestamp_ajustado.append(timestamp_ajustado)
         serial_data1 = BL1.readline() # Lê a linha da porta serial          
@@ -192,7 +192,7 @@ def leitura_esp32_2(file_name,read_time):
         timestamp_buffer = time.time_ns() #retorna em nanosegundos(int) no momento da leitura do buffer na serial
         dif_entre_coleta = 1000000 #1000000 nanosegundos = 1milisegundos
         vetor_timestamp_ajustado = []
-        for i in range(14, -1, -1): # loop para gerar um vetor com o timestamp ajustado para cada posição do vetor, fazendo de trás para frente uma vez que o timestamp do buffer é mais proximo a última posição de coleta 
+        for i in range(4, -1, -1): # loop para gerar um vetor com o timestamp ajustado para cada posição do vetor, fazendo de trás para frente uma vez que o timestamp do buffer é mais proximo a última posição de coleta 
             timestamp_ajustado = timestamp_buffer - (i * dif_entre_coleta)
             vetor_timestamp_ajustado.append(timestamp_ajustado)
         serial_data2 = BL2.readline() # Lê a linha da porta serial          
@@ -214,7 +214,7 @@ def leitura_esp32_1e2(file_name,read_time):
         timestamp_buffer = time.time_ns() #retorna em nanosegundos(int) no momento da leitura do buffer na serial
         dif_entre_coleta = 1000000 #1000000 nanosegundos = 1milisegundos
         vetor_timestamp_ajustado = []
-        for i in range(14, -1, -1): # loop para gerar um vetor com o timestamp ajustado para cada posição do vetor, fazendo de trás para frente uma vez que o timestamp do buffer é mais proximo a última posição de coleta 
+        for i in range(4, -1, -1): # loop para gerar um vetor com o timestamp ajustado para cada posição do vetor, fazendo de trás para frente uma vez que o timestamp do buffer é mais proximo a última posição de coleta 
             timestamp_ajustado = timestamp_buffer - (i * dif_entre_coleta)
             vetor_timestamp_ajustado.append(timestamp_ajustado)
         serial_data1 = BL1.readline() # Lê a linha da porta serial
