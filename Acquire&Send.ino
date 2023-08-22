@@ -46,20 +46,19 @@ int bufferIndex = 0; //index for counting buffer readyness
 
 /*Global declaration for Flex Sensors*/
 const int numFlexSensors = 5;
-const int sensorPins[numFlexSensors] = {34, 35, 32, 33, 25};
+const int sensorPins[numFlexSensors] = {32, 35, 34, 33, 25}; // dedão -> dedinho
 const int resistorValue = 100000; // 100k ohms
 const float voltageReference = 3.3; // Tensão de referência do ESP32 em volts
 const int adcResolution = 4095; // Resolução do ADC do ESP32
 /*---------------------------------------------*/
 //float timestampSimu = 1680058002;
 
-const char* name_device = "left"; // "left" or "right"
+const char* name_device = "right"; // "left" or "right"
 
 String DataPrep(){
   StaticJsonDocument<CAPACITY> doc; // allocate the memory for the document
 
-  //JsonArray timestamp = doc.createNestedArray("timestamp");
-  JsonArray data_Ac_X = doc.createNestedArray("left_data_Ac_X");
+  /*JsonArray data_Ac_X = doc.createNestedArray("left_data_Ac_X");
   JsonArray data_Ac_Y = doc.createNestedArray("left_data_Ac_Y");
   JsonArray data_Ac_Z = doc.createNestedArray("left_data_Ac_Z");
   JsonArray data_Gy_X = doc.createNestedArray("left_data_Gy_X");
@@ -71,22 +70,22 @@ String DataPrep(){
   JsonArray data_flex_3 = doc.createNestedArray("left_data_flex_3");
   JsonArray data_flex_4 = doc.createNestedArray("left_data_flex_4");
   JsonArray data_flex_5 = doc.createNestedArray("left_data_flex_5");
-  /*JsonArray data_Ac_X = doc.createNestedArray("right_data_Ac_X");
+*/
+  JsonArray data_Ac_X = doc.createNestedArray("right_data_Ac_X");
   JsonArray data_Ac_Y = doc.createNestedArray("right_data_Ac_Y");
   JsonArray data_Ac_Z = doc.createNestedArray("right_data_Ac_Z");
   JsonArray data_Gy_X = doc.createNestedArray("right_data_Gy_X");
   JsonArray data_Gy_Y = doc.createNestedArray("right_data_Gy_Y");
   JsonArray data_Gy_Z = doc.createNestedArray("right_data_Gy_Z");
   
-  JsonArray data_Gy_Z = doc.createNestedArray("right_data_flex_1");
-  JsonArray data_Gy_Z = doc.createNestedArray("right_data_flex_2");
-  JsonArray data_Gy_Z = doc.createNestedArray("right_data_flex_3");
-  JsonArray data_Gy_Z = doc.createNestedArray("right_data_flex_4");
-  JsonArray data_Gy_Z = doc.createNestedArray("right_data_flex_5");  
-  */
+  JsonArray data_flex_1 = doc.createNestedArray("right_data_flex_1");
+  JsonArray data_flex_2 = doc.createNestedArray("right_data_flex_2");
+  JsonArray data_flex_3 = doc.createNestedArray("right_data_flex_3");
+  JsonArray data_flex_4 = doc.createNestedArray("right_data_flex_4");
+  JsonArray data_flex_5 = doc.createNestedArray("right_data_flex_5");  
+  
 
   for (int i = 0; i < bufferSize; i=i+11){
-      //timestamp.add(buffer[i]);
       data_Ac_X.add(buffer[i]);
       data_Ac_Y.add(buffer[i+1]);
       data_Ac_Z.add(buffer[i+2]);
@@ -164,7 +163,7 @@ void setup() {
   }
   Serial.println("MPU6050 Found!");
 
-  mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
+  mpu.setAccelerometerRange(MPU6050_RANGE_2_G);
   Serial.print("Accelerometer range set to: ");
   switch (mpu.getAccelerometerRange()) {
   case MPU6050_RANGE_2_G:
@@ -180,7 +179,7 @@ void setup() {
     Serial.println("+-16G");
     break;
   }
-  mpu.setGyroRange(MPU6050_RANGE_500_DEG);
+  mpu.setGyroRange(MPU6050_RANGE_250_DEG);
   Serial.print("Gyro range set to: ");
   switch (mpu.getGyroRange()) {
   case MPU6050_RANGE_250_DEG:
@@ -244,7 +243,7 @@ void loop() {
     int rawValue = analogRead(sensorPins[i]);
     float voltage = (rawValue * voltageReference) / adcResolution;
     float sensorResistance = (voltage * resistorValue) / (voltageReference - voltage);
-    sensorValues[i] = sensorResistance;
+    sensorValues[i] = rawValue;
   }
   
 
