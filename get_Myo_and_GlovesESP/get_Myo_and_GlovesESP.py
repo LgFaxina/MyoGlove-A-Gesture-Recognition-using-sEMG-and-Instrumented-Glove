@@ -17,12 +17,12 @@ from myo.six import print_
 
 #Conexão com os ESP's através das portas bluetooth do notebook
 try:
-    BL1 = serial.Serial('COM4',115200) #esp1
+    BL1 = serial.Serial('COM11',115200) #esp1
     print("Connected ESP32-LEFT")
 except:
     print("Error when connecting to the ESP32-LEFT")
 try:
-    BL2 = serial.Serial('COM7',115200) #esp2
+    BL2 = serial.Serial('COM5',115200) #esp2
     print("Connected ESP32-RIGHT")
 except:
     print("Error when connecting to the ESP32-RIGHT")
@@ -324,7 +324,12 @@ def main():
             print("debug df myo") #debbug
             print(df_myo) #debbug
             df_compilado = pd.merge(df_myo,df_luvas, how = 'outer', on = 'timestamp')
-            #df_compilado = df_compilado.sort_values(by='timestamp') #testar se ordernou corretamente
+            df_compilado = df_compilado.sort_values(by='timestamp') #testar se ordernou corretamente
+            df_compilado = df_compilado.fillna(method= "ffill")
+            df_compilado = df_compilado.drop_duplicates()
+            df_compilado = df_compilado.dropna()
+            df_compilado.to_csv(file_name_compilado,index= False) # Escreve o DataFrame no arquivo CSV
+
             df_compilado.to_csv(file_name_compilado,index= False) # Escreve o DataFrame no arquivo CSV
 
 if __name__ == '__main__':
