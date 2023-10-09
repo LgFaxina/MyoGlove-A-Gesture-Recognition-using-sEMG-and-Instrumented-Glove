@@ -2,167 +2,40 @@
 # Last modified by Luigi Faxina (2023) 
 # Code compilation based on the codes of Yi Jui Lee(2015) and Matheus Taborda(2022)
 
-from __future__ import division
 
-import time
+import sys
 import os
-from os.path import exists
-import pandas as pd
+import time 
+import string
 import serial
-import json
 import myo
+import json
+import csv
 import threading
-from myo.lowlevel import stream_emg
-from myo.six import print_
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot  as plt
+from myo.myo_ecn.listeners       import Collector, ConnectionChecker
+
+
+ # This script performs a single acquisition EMG data for a specified amount of seconds.
+ # Number of seconds and output file name can be specified as arguments when running the script:
+ # python acquisition.py 10 filename
+ # Output format: .csv
+
+EMG_SAMPLING_RATE = 200
 
 #Conexão com os ESP's através das portas bluetooth do notebook
 try:
-    BL1 = serial.Serial('COM11',115200) #esp1
+    BL1 = serial.Serial('COM5',115200) #esp1
     print("Connected ESP32-LEFT")
 except:
     print("Error when connecting to the ESP32-LEFT")
 try:
-    BL2 = serial.Serial('COM5',115200) #esp2
+    BL2 = serial.Serial('COM11',115200) #esp2
     print("Connected ESP32-RIGHT")
 except:
     print("Error when connecting to the ESP32-RIGHT")
-
-open('Emg', 'w').close()
-'''
-Melhorar o código para inserir os outros sensores da MYO
-open('Acceleration.txt', 'w').close()
-open('Gyroscope.txt','w').close()
-open('Orientation.txt', 'w').close()
-'''
-
-last_t = 0
-delta_t = []
-timestamp_list = []
-data_list = []
-
-flag = True
-
-df_myo = pd.DataFrame()
-
-temp = []
-with open('PythonVars.txt') as f:
-    for val in f:
-        temp.append(int(val))
-
-samplerate = temp[0]
-t_s = 1 / samplerate
-print("\n\nSample rate is adjusted to " + str(samplerate) + " Hz")
-print("Collecting emg data every " + str(t_s) + " seconds")
-
-file_number = 0
-r = "Data\Emg_" + str(file_number) + ".csv"
-while (exists(r)):
-    file_number = file_number + 1
-    r = "Data\Emg_" + str(file_number) + ".csv"
-
-T = temp[1]
-print("\n\nThis program will terminate in " + str(T) + " seconds\n")
-
-myo.init()
-r"""
-There can be a lot of output from certain data like acceleration and orientation.
-This parameter controls the percent of times that data is shown.
-"""
-
-
-class Listener(myo.DeviceListener):
-    # return False from any method to stop the Hub
-
-    def on_connect(self, myo, timestamp):
-        print_("Connected to Myo")
-        myo.vibrate('short')
-        myo.set_stream_emg(stream_emg.enabled)
-        myo.request_rssi()
-        global start
-        start = time.time()
-
-    def on_rssi(self, myo, timestamp, rssi):
-        print_("RSSI:", rssi)
-
-    def on_event(self, event):
-        r""" Called before any of the event callbacks. """
-
-    def on_event_finished(self, event):
-        r""" Called after the respective event callbacks have been
-        invoked. This method is *always* triggered, even if one of
-        the callbacks requested the stop of the Hub. """
-
-    def on_pair(self, myo, timestamp):
-        print_('Paired')
-        print_("If you don't see any responses to your movements, try re-running the program or making sure the Myo works with Myo Connect (from Thalmic Labs).")
-
-
-    def on_disconnect(self, myo, timestamp):
-        print_('on_disconnect')
-
-    def on_emg(self, myo, timestamp, emg):
-        global start
-        global t2
-        global t_s
-        global r
-        current = time.time()
-        tdiff = current - start
-        t2 = timestamp
-        if 't1' not in globals():
-            global t1
-            t1 = timestamp
-
-        start = time.time()
-        show_output('emg', emg, r)
-
-    def on_unlock(self, myo, timestamp):
-        print_('unlocked')
-
-    def on_lock(self, myo, timestamp):
-        print_('locked')
-
-    def on_sync(self, myo, timestamp):
-        print_('synced')
-
-    def on_unsync(self, myo, timestamp):
-        print_('unsynced')
-
-
-def show_output(message, data, r):
-    global t2
-    global t1
-    global T
-    global delta_t
-    global df_myo
-    global flag
-
-    global timestamp_list
-    global data_list
-    if t2 - t1 < (T*1000000):
-        timestamp = time.time_ns()
-        df_myo = pd.concat([df_myo,pd.DataFrame({'timestamp': timestamp,
-                                                    'EMG_s0': data[0],
-                                                    'EMG_s1': data[1],
-                                                    'EMG_s2': data[2],
-                                                    'EMG_s3': data[3],
-                                                    'EMG_s4': data[4],
-                                                    'EMG_s5': data[5],
-                                                    'EMG_s6': data[6],
-                                                    'EMG_s7': data[7]}, index=[0])])
-        #print("t2: " + t2)
-     #   print("time_time: " + str(time_time))
-        # print('t:{:<9}: '.format(
-        #     (t2 - t1) / 1000000) + '[{:>8},  {:>8},  {:>8}, {:>8},  {:>8},  {:>8},  {:>8},  {:>8}]'
-        #       .format(data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7]))
-    else:
-        if flag:
-                print("End of data acquisition")
-                print("Saving " + r + " ...")
-                df_myo = df_myo.set_index('timestamp') #set o novo index
-                df_myo.to_csv(r, index=True)
-                print(r + " saved")
-                flag = False
-            # quit()
 
 #Funções de leitura da serial + criação dos dataframesl
 def leitura_esp32_1(file_name,read_time):
@@ -242,95 +115,139 @@ def leitura_esp32_1e2(file_name,read_time):
         df_data2 = df_data2.set_index('timestamp')
         df_data_1e2 = pd.merge(df_data1,df_data2, how = 'outer', on = 'timestamp')
         df_data_1e2.to_csv(file_name, mode='a', header=not os.path.exists(file_name)) # Escreve o DataFrame no arquivo CSV
-
-def leitura_2Xesp32_myo(file_name,read_time,hub):
-    t1 = threading.Thread(target=leitura_esp32_1e2,args=(file_name,read_time))
-    t1.start() #Thread que roda a coleta das ESPS
-    hub.run(1000, Listener())  #Thread que roda a coleta da myo    
-    t1.join() #aguarda finalizar a Thread das ESPS   
-    #df_compilado = pd.merge(df_data_1e2,df_myo, how = 'outer', on = 'timestamp')
-    #df_compilado = pd.concat([df_data_1e2, df_myo]).sort_values(by='timestamp')
-    #df_compilado.to_csv(file_name,index= True) # Escreve o DataFrame no arquivo CSV
-    #df_compilado.to_csv(file_name, mode='a', header=not os.path.exists(file_name)) # Escreve o DataFrame no arquivo CSV
+    
+def leitura_myo(hub,listener,file_name,read_time):
+    # Asynchrnous.
+    with hub.run_in_background(listener.on_event):
+        while hub.running:
+            time.sleep(0.5)
+            print('\rRecording ... %d percent done.' % (100 * listener.emg_data.shape[0]/read_time/EMG_SAMPLING_RATE), end='')  
+        print()
+    
+    column_names = ["timestamp", "EMG_s0", "EMG_s1", "EMG_s2", "EMG_s3", "EMG_s4", "EMG_s5", "EMG_s6", "EMG_s7"]
+    with open(file_name, 'w', newline='') as csvfile:
+        spamwriter = csv.writer(csvfile)
+        spamwriter.writerow(column_names)
+        for row in listener.emg_data:
+            if any(row):
+                spamwriter.writerow(row)
     
 
+def leitura_geral(hub,listener,file_name1, file_name2,read_time):
+    t1 = threading.Thread(target=leitura_esp32_1e2,args=(file_name1,read_time))
+    t1.start() #Thread que roda a coleta das ESPS
+    # Asynchrnous.
+    with hub.run_in_background(listener.on_event):
+        while hub.running:
+            time.sleep(0.5)
+            print('\rRecording ... %d percent done.' % (100 * listener.emg_data.shape[0]/read_time/EMG_SAMPLING_RATE), end='')  
+        print()
+    column_names = ["timestamp", "EMG_s0", "EMG_s1", "EMG_s2", "EMG_s3", "EMG_s4", "EMG_s5", "EMG_s6", "EMG_s7"]
+    with open(file_name2, 'w', newline='') as csvfile:  # Adicione 'newline=' para evitar linhas em branco entre as linhas.
+        spamwriter = csv.writer(csvfile)
+        spamwriter.writerow(column_names)
+        for row in listener.emg_data:
+            if any(row):
+                spamwriter.writerow(row)
+    t1.join()
+
 def main():
-
+    myo.init( sdk_path ='C:\\Users\\luigi\Documents\\2023\\TCC - Referências\\myo_ecn-46818fb4537d468befa69431d2e0452b953c9998\\myo_sdk' ) # Compile Python binding to Myo's API
+    hub = myo.Hub() # Create a Python instance of MYO API
+    if not ConnectionChecker().ok: # Check connection before starting acquisition:
+        quit()
     #solicita informações do usuário e da coleta
-    user_name = input("Insira o nome do usuário: ")
+    user_name = input("\n\n\nInsira o nome do usuário: ")
     description = input("Insira uma descrição para a coleta: ")
-    #read_time = input("Digite o tempo (em segundos) para executar a coleta: ")
-    #read_time = int(read_time)
-    read_time = T
+    read_time = input("Digite o tempo (em segundos) para executar a coleta: ")
+    read_time = int(read_time)
     opcao = ""
-    hub = myo.Hub()
-    hub.set_locking_policy(myo.locking_policy.none)
-
+    listener = Collector(read_time * EMG_SAMPLING_RATE)
     while opcao != '0':
-        opcao = input("\nQual dispositivo utilizar para a coleta:\n(precione 0 para finalizar)\n[1]ESP32-LEFT\n[2]ESP32-RIGHT\n[3]ESP32-LEFT + ESP32-RIGHT\n[4]ESP32-LEFT + ESP32-RIGHT + MYO\n[5]MYO\n\n\n\n\n\n\n[9]Compilar Myo+Luvas\n\n:")
-        if(opcao == '1'):
+        opcao = input("\nQual dispositivo utilizar para a coleta:\n(precione 0 para finalizar)\n[1] ESP32-LEFT\n[2] ESP32-RIGHT\n[3] ESP32-LEFT + ESP32-RIGHT\n[4] MYO\n[5] ESP32-LEFT + ESP32-RIGHT + MYO\n\n[9]Compilar Myo+Luvas\n[p1] Plot Myo\n[p2] Plot ESP32-LEFT\n[p3] ESP32-RIGHT\n\n:")
+        if(opcao == '1'): #[1]ESP32-LEFT
             print("opcao 1 selecionada\n")
             device = "LG"
-            file_name = f"Data\{user_name}_{description}_{read_time}s_device{device}.csv"
+            file_name1 = f"Data\{user_name}_{description}_{read_time}s_device{device}.csv"
             print("Running...\n")
-            leitura_esp32_1(file_name,read_time)
-        if(opcao == '2'):
+            leitura_esp32_1(file_name1,read_time)
+        if(opcao == '2'): #[2]ESP32-RIGHT
             print("opcao 2 selecionada\n")
             device = "RG"
-            file_name = f"Data\{user_name}_{description}_{read_time}s_device{device}.csv"
+            file_name1 = f"Data\{user_name}_{description}_{read_time}s_device{device}.csv"
             print("Running...\n")
-            leitura_esp32_2(file_name,read_time)
-        if(opcao == '3'):
+            leitura_esp32_2(file_name1,read_time)
+        if(opcao == '3'): #[3]ESP32-LEFT + ESP32-RIGHT
             print("opcao 3 selecionada\n")
             device = "LG+RG"
-            file_name = f"Data\{user_name}_{description}_{read_time}s_device{device}.csv"
+            file_name1 = f"Data\{user_name}_{description}_{read_time}s_device{device}.csv"
             print("Running...\n")
-            leitura_esp32_1e2(file_name,read_time)
+            leitura_esp32_1e2(file_name1,read_time)            
         if(opcao == '4'):
             print("opcao 4 selecionada\n")
-            device = "LG+RG+Myo"
-            file_name = f"Data\{user_name}_{description}_{read_time}s_device{device}.csv"
-            print("Running...\n")
-            leitura_2Xesp32_myo(file_name,read_time,hub)
-            try:
-                while hub.running:
-                   myo.time.sleep(0.2)
-            except KeyboardInterrupt:
-                print_("Quitting ...")
-                hub.stop(True)
-        if(opcao == '5'):
-            print("opcao 5 selecionada\n")
             device = "Myo"
-            file_name = f"Data\{user_name}_{description}_{read_time}s_device{device}.csv"
-            hub.run(1000, Listener())
-            print("Running...\n")
-
-                # Listen to keyboard interrupts and stop the
-                # hub in that case.                
-            try:
-                while hub.running:
-                   myo.time.sleep(0.2)
-            except KeyboardInterrupt:
-                print_("Quitting ...")
-                hub.stop(True)
-
+            file_name2 = f"Data\{user_name}_{description}_{read_time}s_device{device}.csv"
+            leitura_myo(hub,listener,file_name2,read_time)
+        if(opcao == '5'): #[4]ESP32-LEFT + ESP32-RIGHT + MYO
+            print("opcao 5 selecionada\n")
+            device = "Myo+gloves"
+            file_name2 = f"Data\{user_name}_{description}_{read_time}s_deviceMyo.csv"
+            file_name1 = f"Data\{user_name}_{description}_{read_time}s_deviceLG+RG.csv"
+            leitura_geral(hub,listener,file_name1,file_name2,read_time)               
         if(opcao == '9'):
-            file_name = f"Data\{user_name}_{description}_{read_time}s_device{device}.csv"
-            file_name_compilado = f"Data\[COMPILADO]{user_name}_{description}_{read_time}s_device{device}.csv"
-            df_luvas = pd.read_csv(file_name)
+            file_name_compilado = f"Data\{user_name}_{description}_{read_time}s_device{device}_[COMPILADO].csv"
+            df_myo = pd.read_csv(file_name2)
+            df_luvas = pd.read_csv(file_name1)
 
-            print("debug df luvas") #debbug
-            print(df_luvas) #debbug
-            print("debug df myo") #debbug
-            print(df_myo) #debbug
+            #print("debug df luvas") #debbug
+            #print(df_luvas) #debbug
+            #print("debug df myo") #debbug
+            #print(df_myo) #debbug
             df_compilado = pd.merge(df_myo,df_luvas, how = 'outer', on = 'timestamp')
             df_compilado = df_compilado.sort_values(by='timestamp') #testar se ordernou corretamente
             df_compilado = df_compilado.fillna(method= "ffill")
             df_compilado = df_compilado.drop_duplicates()
             df_compilado = df_compilado.dropna()
             df_compilado.to_csv(file_name_compilado,index= False) # Escreve o DataFrame no arquivo CSV
-
+        if(opcao == '10'):
+            file_name1 = f"Data\luigi_teste-novo-metodo_3s_deviceMyo.csv.csv"
+            file_name2 = f"Data\luigi_teste-novo-metodo_3s_deviceLG+RG.csv"
+            file_name_compilado = f"Data\[COMPILADO]_luigi_teste-novo-metodo_3s.csv"
+            df_myo = pd.read_csv(file_name1)
+            df_luvas = pd.read_csv(file_name2)
+            
+            df_compilado = pd.merge(df_myo,df_luvas, how = 'outer', on = 'timestamp')
+            df_compilado = df_compilado.sort_values(by='timestamp') #testar se ordernou corretamente
+            df_compilado = df_compilado.fillna(method= "ffill")
+            df_compilado = df_compilado.drop_duplicates()
+            df_compilado = df_compilado.dropna()
             df_compilado.to_csv(file_name_compilado,index= False) # Escreve o DataFrame no arquivo CSV
-
+        if(opcao == 'p1'):
+            df_myo = pd.read_csv(file_name2)
+            df_myo.EMG_s0.plot()
+            df_myo.EMG_s1.plot()
+            df_myo.EMG_s2.plot()
+            df_myo.EMG_s3.plot()
+            df_myo.EMG_s4.plot()
+            df_myo.EMG_s5.plot()
+            df_myo.EMG_s6.plot()
+            df_myo.EMG_s7.plot()
+            plt.show()
+        if(opcao == 'p2'):
+            df_lg = pd.read_csv(file_name1)            
+            df_lg.left_data_flex_1.plot()
+            df_lg.left_data_flex_2.plot()
+            df_lg.left_data_flex_3.plot()
+            df_lg.left_data_flex_4.plot()
+            df_lg.left_data_flex_5.plot()
+            plt.show()
+        if(opcao == 'p3'):
+            df_rg = pd.read_csv(file_name1)            
+            df_rg.right_data_flex_1.plot()
+            df_rg.right_data_flex_2.plot()
+            df_rg.right_data_flex_3.plot()
+            df_rg.right_data_flex_4.plot()
+            df_rg.right_data_flex_5.plot()
+            plt.show()
 if __name__ == '__main__':
     main()

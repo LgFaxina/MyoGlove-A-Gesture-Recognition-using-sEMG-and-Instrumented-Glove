@@ -47,6 +47,13 @@ int bufferIndex = 0; //index for counting buffer readyness
 /*Global declaration for Flex Sensors*/
 const int numFlexSensors = 5;
 const int sensorPins[numFlexSensors] = {32, 35, 34, 33, 25}; // dedão -> dedinho
+const int sensorCalibrate[numFlexSensors]= {3076, 2990, 3022, 2959, 3175};
+/*
+Calibrção sensores flex em repouso:
+Left: {3087, 3088, 3018, 3037, 2686}
+Right: {3076, 2990, 3022, 2959, 3175}
+
+*/
 const int resistorValue = 100000; // 100k ohms
 const float voltageReference = 3.3; // Tensão de referência do ESP32 em volts
 const int adcResolution = 4095; // Resolução do ADC do ESP32
@@ -243,7 +250,7 @@ void loop() {
     int rawValue = analogRead(sensorPins[i]);
     float voltage = (rawValue * voltageReference) / adcResolution;
     float sensorResistance = (voltage * resistorValue) / (voltageReference - voltage);
-    sensorValues[i] = rawValue;
+    sensorValues[i] = rawValue - sensorCalibrate[i];
   }
   
 
