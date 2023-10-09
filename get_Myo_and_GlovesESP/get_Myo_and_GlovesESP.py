@@ -18,12 +18,7 @@ import matplotlib.pyplot  as plt
 from myo.myo_ecn.listeners       import Collector, ConnectionChecker
 
 
- # This script performs a single acquisition EMG data for a specified amount of seconds.
- # Number of seconds and output file name can be specified as arguments when running the script:
- # python acquisition.py 10 filename
- # Output format: .csv
-
-EMG_SAMPLING_RATE = 200
+EMG_SAMPLING_RATE = 200 #taxa de aquisição da Myo
 
 #Conexão com os ESP's através das portas bluetooth do notebook
 try:
