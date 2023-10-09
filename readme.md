@@ -1,4 +1,4 @@
-![logo_GlicoCare](https://i.imgur.com/KktSzVL.png)
+![logo_GlicoCare](https://i.imgur.com/zQCDf5L.png)
 
 <hr>
 
@@ -24,6 +24,7 @@ título de Bacharel em Engenharia Eletrônica
 do Curso de Bacharelado em Engenharia
 Eletrônica da Universidade Tecnológica Federal
 do Paraná.
+
 Orientador: Prof. Dr. José Jair Alves Mendes Junior
 
 CURITIBA
@@ -36,5 +37,5 @@ CURITIBA
 1) Baixar o projeto
 2) Realizar o Upload do arquivo 'Acquire&Send.ino' nas ESP32, realizar os ajustes para a identificação correta da Luva Esquerda e Luva Direita
 3) Ligar as ESP's e a Myo
-4) Conectar o computador via Bluetooh com as Luvas e com a Myo
-5) Rodar o código 'get_Myo_and_GlovesESP.py' para realizar a aquisição dos dados, realizar os ajustes das portas seriais bluetooths utilizadas para a conexão
+4) Conectar o computador via Bluetooth com as Luvas e com a Myo
+5) Rodar o código 'get_Myo_and_GlovesESP.py' para realizar a aquisição dos dados, realizar os ajustes das portas seriais bluetooth utilizadas para a conexão
