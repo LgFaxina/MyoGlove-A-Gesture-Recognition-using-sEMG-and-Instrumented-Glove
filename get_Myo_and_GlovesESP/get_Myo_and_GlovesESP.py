@@ -32,7 +32,7 @@ try:
 except:
     print("Error when connecting to the ESP32-RIGHT")
 
-#Funções de leitura da serial + criação dos dataframesl
+#Funções de leitura da serial + criação dos dataframes
 def leitura_esp32_1(file_name,read_time):
     start_time = time.time()
     while (time.time() - start_time) < read_time:

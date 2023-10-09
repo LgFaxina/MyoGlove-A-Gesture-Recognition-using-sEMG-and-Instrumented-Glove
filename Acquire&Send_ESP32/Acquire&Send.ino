@@ -7,6 +7,7 @@
 
 // BT based of BT examples library
 // packaging based of multiprocessing code of Daniel C. and Thiago D.
+// Last modified by Luigi Faxina (2023) 
 
 /*definition of BT, and error prevention*/
 #if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
